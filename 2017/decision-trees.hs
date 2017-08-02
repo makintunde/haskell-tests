@@ -109,9 +109,9 @@ nextAtt (header, _) (classifierName, _)
 
 partitionData :: DataSet -> Attribute -> Partition
 partitionData (header, rows) (attName, attVals)
-  = [(attVal, getDataset attVal) | attVal <- attVals]
+  = map getPartition attVals
     where
-        getDataset attVal = (newHeader, truncatedRows)
+        getPartition attVal = (attVal, (newHeader, truncatedRows))
           where
             newHeader = remove attName header
             truncatedRows = map (removeAtt attName header) matchingRows
@@ -134,8 +134,12 @@ buildTree (header, rows) classAtt attSelector
 --------------------------------------------------------------------
 
 entropy :: DataSet -> Attribute -> Double
-entropy 
-  = undefined
+entropy (header, []) _ = 0.0
+entropy dataset attribute
+  = -sum (map (xlogx . getProb) ((buildFrequencyTable attribute dataset)))
+    where
+      getProb (attVal, freq) = (fromIntegral freq) / (fromIntegral (length (snd dataset)))
+
 
 gain :: DataSet -> Attribute -> Attribute -> Double
 gain 
