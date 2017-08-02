@@ -133,17 +133,24 @@ buildTree (header, rows) classAtt attSelector
 -- PART IV
 --------------------------------------------------------------------
 
+getProb dataset attribute val
+  = (fromIntegral freq) / (fromIntegral (length (snd dataset)))
+    where
+      freq = lookUp val (buildFrequencyTable attribute dataset)
+
 entropy :: DataSet -> Attribute -> Double
 entropy (header, []) _ = 0.0
 entropy dataset attribute
-  = -sum (map (xlogx . getProb) ((buildFrequencyTable attribute dataset)))
-    where
-      getProb (attVal, freq) = (fromIntegral freq) / (fromIntegral (length (snd dataset)))
-
+  = -sum (map (xlogx . (getProb dataset attribute)) (snd attribute))
 
 gain :: DataSet -> Attribute -> Attribute -> Double
-gain 
-  = undefined
+gain dataset classAtt partAtt 
+  = (entropy dataset classAtt) - (sum (map f (snd partAtt))) 
+    where
+      f val 
+        = (getProb dataset partAtt val) * (entropy partition classAtt)
+          where 
+            partition = lookUp val (partitionData dataset partAtt) 
 
 bestGainAtt :: AttSelector
 bestGainAtt 
