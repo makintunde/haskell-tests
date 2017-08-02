@@ -108,8 +108,17 @@ nextAtt (header, _) (classifierName, _)
   = head (filter ((/= classifierName) . fst) header)
 
 partitionData :: DataSet -> Attribute -> Partition
-partitionData 
-  = undefined
+partitionData (header, rows) (attName, attVals)
+  = [(attVal, getPartitions attVal) | attVal <- attVals]
+    where
+        getPartitions attVal = (newHeader, truncatedRows)
+          where
+            newHeader = remove attName header
+            truncatedRows = map (removeAtt attName header) matchingRows
+            matchingRows = filter (\row -> (lookUpAtt attName header row) == attVal) rows
+           
+        
+      
 
 buildTree :: DataSet -> Attribute -> AttSelector -> DecisionTree 
 buildTree 
