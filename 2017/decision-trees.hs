@@ -109,20 +109,25 @@ nextAtt (header, _) (classifierName, _)
 
 partitionData :: DataSet -> Attribute -> Partition
 partitionData (header, rows) (attName, attVals)
-  = [(attVal, getPartitions attVal) | attVal <- attVals]
+  = [(attVal, getDataset attVal) | attVal <- attVals]
     where
-        getPartitions attVal = (newHeader, truncatedRows)
+        getDataset attVal = (newHeader, truncatedRows)
           where
             newHeader = remove attName header
             truncatedRows = map (removeAtt attName header) matchingRows
             matchingRows = filter (\row -> (lookUpAtt attName header row) == attVal) rows
            
-        
-      
-
 buildTree :: DataSet -> Attribute -> AttSelector -> DecisionTree 
-buildTree 
-  = undefined
+buildTree (_, []) _ _ = Null
+buildTree (header, rows) classAtt attSelector
+  | allSame (map checkClassifiedValue rows) = Leaf (checkClassifiedValue (head rows))
+  | otherwise = Node nextAttName (map nextSubtree partitions)
+                where
+                  checkClassifiedValue = lookUpAtt (fst classAtt) header
+                  partitions = partitionData (header, rows) (nextAttName, nextAttVals)
+                  (nextAttName, nextAttVals) = attSelector (header, rows) classAtt
+                  nextSubtree (attVal, dataset)
+                    = (attVal, buildTree dataset classAtt attSelector)
 
 --------------------------------------------------------------------
 -- PART IV
