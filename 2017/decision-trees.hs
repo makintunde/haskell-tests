@@ -153,8 +153,10 @@ gain dataset classAtt partAtt
             partition = lookUp val (partitionData dataset partAtt) 
 
 bestGainAtt :: AttSelector
-bestGainAtt 
-  = undefined
+bestGainAtt (header, rows) classAtt 
+  = snd $ maximum $ zip gains (remove (fst classAtt) header)
+    where
+      gains = [gain (header, rows) att classAtt | att <- header]
 
 --------------------------------------------------------------------
 
