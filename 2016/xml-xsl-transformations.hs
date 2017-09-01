@@ -46,29 +46,49 @@ printXMLs
 -- Part I
 
 skipSpace :: String -> String
-skipSpace
-  = undefined
+skipSpace s = snd $ span isSpace s
 
 getAttribute :: String -> XML -> String
-getAttribute 
-  = undefined
+getAttribute key (Element _ attrs _) 
+  = fromJust $ lookup key attrs 
+getAttribute _ _
+  = ""
+
+getChildren' _ []
+  = []
+getChildren' key ((Element name atts children) : rest)
+  | key == name = (Element name atts children) : getChildren' key rest 
+  | otherwise = getChildren' key rest 
 
 getChildren :: String -> XML -> [XML]
-getChildren 
-  = undefined
+getChildren key (Element _ _ children) 
+  = getChildren' key children 
+getChildren _ _
+  = [] 
 
 getChild :: String -> XML -> XML
-getChild 
-  = undefined
+getChild s xml 
+  | result == [] = Text ""
+  | otherwise = head result
+    where
+      result = getChildren s xml 
 
 addChild :: XML -> XML -> XML
 -- Pre: the second argument is an Element
-addChild 
-  = undefined
+addChild child (Element name attrs children) 
+  = (Element name attrs (children ++ [child])) 
+
+getValue' (Text s)
+  = s
+getValue' (Element _ _ children)
+  = concatMap getValue' children
+getValue' _
+  = ""
 
 getValue :: XML -> XML
-getValue 
-  = undefined
+getValue xml 
+  = Text (getValue' xml)
+
 
 -------------------------------------------------------------------------
 -- Part II
