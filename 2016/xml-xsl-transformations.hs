@@ -110,27 +110,51 @@ sentinel
 
 addText :: String -> Stack -> Stack
 -- Pre: There is at least one Element on the stack
-addText 
-  = undefined
+addText s (e:rest) 
+  = (addChild (Text s) e) : rest 
 
 popAndAdd :: Stack -> Stack
 -- Pre: There are at least two Elements on the stack
-popAndAdd 
-  = undefined
+popAndAdd (a:b:rest) 
+  = (addChild a b) : rest
+
+
+parseAttributes':: String -> Attributes -> (Attributes, String)
+parseAttributes' str attrs
+  | s == '>' = (attrs, rest)
+  | otherwise = (parseAttributes' rest'''' (attrs ++ [(name, value)]))
+    where
+      s = head str'
+      rest = tail str'
+      str' = skipSpace str
+      (name, rest') = parseName $ str'
+      rest'' = skipSpace $ tail $ skipSpace rest'
+      (value, rest''') = span (\c -> c /= '\"') (tail $ rest'')
+      rest'''' = skipSpace $ tail rest'''
 
 parseAttributes :: String -> (Attributes, String)
 -- Pre: The XML attributes string is well-formed
-parseAttributes 
-  = undefined
+parseAttributes str
+  = parseAttributes' str []
+              
 
 parse :: String -> XML
 -- Pre: The XML string is well-formed
 parse s
   = parse' (skipSpace s) [sentinel]
 
-parse' :: String -> Stack -> XML
-parse' 
-  = undefined
+parse':: String -> Stack -> XML
+parse' [] ((Element _ _ children) : _)
+  = head children
+parse' (s:t:rest) stack 
+  | s == '<' && t == '/' 
+      = parse' (tail (dropWhile (\c -> c /= '>') rest)) (popAndAdd stack) 
+  | s == '<' = parse' rest' ((Element name attrs []) : stack)
+  | otherwise = parse' rest''' (addText text stack)
+    where
+      (name, rest'') = parseName $ t:rest
+      (attrs, rest') = parseAttributes rest'' 
+      (text, rest''') = span (\c -> c /= '<') (s:t:rest)  
 
 -------------------------------------------------------------------------
 -- Part III
