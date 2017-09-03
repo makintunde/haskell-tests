@@ -146,15 +146,15 @@ parse s
 parse':: String -> Stack -> XML
 parse' [] ((Element _ _ children) : _)
   = head children
-parse' (s:t:rest) stack 
+parse' str@(s:t:rest) stack
   | s == '<' && t == '/' 
       = parse' (tail (dropWhile (\c -> c /= '>') rest)) (popAndAdd stack) 
   | s == '<' = parse' rest' ((Element name attrs []) : stack)
   | otherwise = parse' rest''' (addText text stack)
     where
-      (name, rest'') = parseName $ t:rest
+      (name, rest'') = parseName $ tail str
       (attrs, rest') = parseAttributes rest'' 
-      (text, rest''') = span (\c -> c /= '<') (s:t:rest)  
+      (text, rest''') = span (\c -> c /= '<') str
 
 -------------------------------------------------------------------------
 -- Part III
